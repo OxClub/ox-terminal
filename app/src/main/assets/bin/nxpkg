@@ -1,0 +1,25 @@
+#!/system/bin/sh
+# nxpkg - Nexus Terminal package helper.
+# Read-only queries (list/search/info) run locally against the cached index.
+# install/remove/update/upgrade are confirmed in the Nexus "Packages" screen
+# so that nothing modifies your environment without a visible prompt.
+DB="$PREFIX/var/nx"
+usage() {
+  echo "usage: nxpkg list | search <text> | info <pkg> | install <pkg> | remove <pkg> | update | upgrade"
+}
+need_index() {
+  [ -f "$DB/available.txt" ] || { echo "No package index cached. Open Nexus > Packages and refresh (needs a configured repository)."; exit 1; }
+}
+ask_app() {
+  am start -n com.nexus.terminal/.MainActivity --es nx_action "$1" --es nx_pkg "$2" >/dev/null 2>&1 \
+    && echo "Confirm '$1 $2' in the Nexus Packages screen." \
+    || echo "Could not reach the Nexus app (am start failed)."
+}
+case "$1" in
+  list)    if [ -s "$DB/installed.txt" ]; then cat "$DB/installed.txt"; else echo "No packages installed."; fi ;;
+  search)  need_index; [ -n "$2" ] || { usage; exit 1; }; grep -i -- "$2" "$DB/available.txt" || echo "No matches." ;;
+  info)    need_index; [ -n "$2" ] || { usage; exit 1; }; grep -i -- "^$2	" "$DB/available.txt" || echo "Package not found: $2" ;;
+  install|remove) [ -n "$2" ] || { usage; exit 1; }; ask_app "$1" "$2" ;;
+  update|upgrade) ask_app "$1" "" ;;
+  *) usage ;;
+esac

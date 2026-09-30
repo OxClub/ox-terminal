@@ -1,0 +1,11 @@
+#!/system/bin/sh
+# nexus-help - local, offline command documentation (same data as the Commands screen).
+D="$PREFIX/share/nexus/help"
+if [ -z "$1" ]; then
+  echo "Commands with local documentation:"
+  ls "$D" | sed 's/\.txt$//' | tr '\n' ' '
+  echo
+  echo "Usage: nexus-help <command>"
+  exit 0
+fi
+if [ -f "$D/$1.txt" ]; then cat "$D/$1.txt"; else echo "No local help for '$1'. Try: $1 --help"; exit 1; fi
