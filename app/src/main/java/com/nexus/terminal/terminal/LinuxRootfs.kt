@@ -10,7 +10,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream
-import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream
 import java.io.File
 import java.io.IOException
 
@@ -24,7 +23,7 @@ object LinuxRootfs {
     val progress = mutableStateOf("")
     val lastError = mutableStateOf<String?>(null)
 
-    private const val ASSET_PATH = "linux/rootfs.tar.gz"
+    private const val ASSET_PATH = "linux/rootfs.tar"
     private const val STAMP_NAME = "rootfs.stamp"
     // Bump this if fetch-linux.sh ever produces an incompatible rootfs layout, to force re-extraction.
     private const val ROOTFS_VERSION = "1"
@@ -67,7 +66,7 @@ object LinuxRootfs {
             dest.deleteRecursively()
             dest.mkdirs()
             var count = 0
-            TarArchiveInputStream(GzipCompressorInputStream(app.assets.open(ASSET_PATH).buffered(1 shl 16))).use { tin ->
+            TarArchiveInputStream(app.assets.open(ASSET_PATH).buffered(1 shl 16)).use { tin ->
                 var e = tin.nextTarEntry
                 while (e != null) {
                     extractEntry(dest, e, tin)
