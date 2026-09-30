@@ -9,8 +9,7 @@ mkdir -p "$MAIN/assets/linux" "$MAIN/jniLibs/arm64-v8a"
 echo "=== 1/2 Debian rootfs (arm64) ==="
 docker run --privileged --rm tonistiigi/binfmt --install arm64
 cat > "$WORK/Dockerfile" << 'EOF'
-ARG TARGETPLATFORM=linux/arm64
-FROM --platform=$TARGETPLATFORM debian:bookworm-slim
+FROM debian:bookworm-slim
 ENV DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update
@@ -23,8 +22,13 @@ RUN apt-get install -y --no-install-recommends \
 RUN apt-get install -y --no-install-recommends \
       openssl netcat-openbsd socat whois dnsutils
 
-RUN apt-get install -y --no-install-recommends \
-      nmap hping3 nikto dirb gobuster hydra john hashcat sqlmap
+# Try each security tool individually so a single missing/renamed arm64
+# package doesn't abort the whole build; failures are logged, not fatal.
+RUN for pkg in nmap hping3 nikto dirb gobuster hydra john hashcat sqlmap; do \
+      echo "=== installing $pkg ==="; \
+      apt-get install -y --no-install-recommends "$pkg" \
+        || echo "!!! FAILED (skipped): $pkg"; \
+    done
 
 RUN apt-get clean && rm -rf /var/lib/apt/lists/*
 EOF
