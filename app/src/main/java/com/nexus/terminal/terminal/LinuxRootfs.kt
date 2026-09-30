@@ -36,6 +36,18 @@ object LinuxRootfs {
     private fun prootBin(ctx: Context) = File(nativeLibDir(ctx), "libproot.so")
     private fun prootLoader(ctx: Context) = File(nativeLibDir(ctx), "libproot-loader.so")
 
+    private fun libShimDir(ctx: Context): File {
+        val dir = File(rootDir(ctx), "libshim")
+        dir.mkdirs()
+        val link = File(dir, "libtalloc.so.2")
+        if (!link.exists()) {
+            runCatching {
+                Os.symlink(File(nativeLibDir(ctx), "libtalloc.so").path, link.path)
+            }
+        }
+        return dir
+    }
+
     /** True only when both the rootfs asset and the PRoot native libraries were bundled at build time. */
     fun isBundled(ctx: Context): Boolean = try {
         ctx.assets.open(ASSET_PATH).close()
@@ -145,7 +157,7 @@ object LinuxRootfs {
             "/bin/bash", "--login"
         )
         val env = arrayOf(
-            "LD_LIBRARY_PATH=" + nativeLibDir(app).path,
+            "LD_LIBRARY_PATH=" + libShimDir(app).path + ":" + nativeLibDir(app).path,
             "PROOT_LOADER=" + prootLoader(app).path,
             "PROOT_TMP_DIR=" + NxPaths.tmp(app).path
         )
