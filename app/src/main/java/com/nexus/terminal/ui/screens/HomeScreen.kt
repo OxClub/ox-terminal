@@ -2,6 +2,7 @@ package com.nexus.terminal.ui.screens
 
 import android.app.ActivityManager
 import android.content.Context
+import androidx.compose.foundation.shape.RoundedCornerShape
 import android.os.StatFs
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
