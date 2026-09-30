@@ -15,6 +15,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
       bash coreutils procps ca-certificates curl wget git openssh-client \
       python3 python3-pip nodejs build-essential make nano vim-tiny less \
       grep sed gawk findutils tar gzip xz-utils unzip zip file iputils-ping \
+      openssl netcat-openbsd socat whois dnsutils \
+      nmap hping3 nikto dirb gobuster hydra john hashcat sqlmap \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 EOF
 docker buildx build --platform linux/arm64 --load -t nexus-debian "$WORK"

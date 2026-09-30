@@ -33,6 +33,7 @@ import com.nexus.terminal.ui.*
 import com.nexus.terminal.util.NxPaths
 import com.nexus.terminal.util.ShareUtil
 import com.termux.view.TerminalView
+import kotlinx.coroutines.launch
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -162,8 +163,10 @@ private fun saveOutput(ctx: android.content.Context, text: String) {
 @Composable
 private fun SessionTabs(onRename: (SessionInfo) -> Unit, onFullscreen: () -> Unit, onOverflow: () -> Unit, overflowMenu: @Composable () -> Unit) {
     val ctx = LocalContext.current
+    val scope = rememberCoroutineScope()
     var menuFor by remember { mutableStateOf<Int?>(null) }
     var newMenu by remember { mutableStateOf(false) }
+    var linuxBusy by remember { mutableStateOf(false) }
     Row(Modifier.fillMaxWidth().padding(horizontal = 4.dp, vertical = 4.dp), verticalAlignment = Alignment.CenterVertically) {
         LazyRow(Modifier.weight(1f), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
             items(Sessions.list.toList(), key = { it.id }) { s ->
@@ -199,6 +202,19 @@ private fun SessionTabs(onRename: (SessionInfo) -> Unit, onFullscreen: () -> Uni
                     DropdownMenuItem(text = { Text("New " + sh.substringAfterLast('/')) },
                         onClick = { newMenu = false; Sessions.create(ctx, shell = sh) })
                 }
+                if (LinuxRootfs.isBundled(ctx)) {
+                    val label = if (LinuxRootfs.isExtracted(ctx)) "New Linux (Debian)" else "Set up Linux (Debian)…"
+                    DropdownMenuItem(text = { Text(label) }, onClick = {
+                        newMenu = false
+                        scope.launch {
+                            linuxBusy = true
+                            val ok = LinuxRootfs.ensureExtracted(ctx)
+                            linuxBusy = false
+                            if (ok) Sessions.createLinux(ctx)
+                            else toast(ctx, LinuxRootfs.lastError.value ?: "Could not set up Linux")
+                        }
+                    })
+                }
             }
         }
         IconButton(onClick = onFullscreen) { Icon(Icons.Filled.Fullscreen, "Full screen") }
@@ -206,6 +222,20 @@ private fun SessionTabs(onRename: (SessionInfo) -> Unit, onFullscreen: () -> Uni
             IconButton(onClick = onOverflow) { Icon(Icons.Filled.MoreVert, "More") }
             overflowMenu()
         }
+    }
+    if (linuxBusy) {
+        AlertDialog(
+            onDismissRequest = {},
+            title = { Text("Setting up Linux") },
+            text = {
+                Column {
+                    Text(LinuxRootfs.progress.value.ifBlank { "Extracting the bundled Debian environment…" })
+                    Spacer(Modifier.height(12.dp))
+                    LinearProgressIndicator(Modifier.fillMaxWidth())
+                }
+            },
+            confirmButton = {}
+        )
     }
 }
 

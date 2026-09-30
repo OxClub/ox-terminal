@@ -11,7 +11,11 @@ import com.termux.terminal.TerminalSession
 import com.termux.view.TerminalView
 import java.io.File
 
-class SessionInfo(val id: Int, name: String, val shell: String, val cwd: String, val initialCommand: String?) {
+enum class SessionKind { SHELL, LINUX }
+
+class SessionInfo(
+    val id: Int, name: String, val kind: SessionKind, val shell: String, val cwd: String, val initialCommand: String?
+) {
     var name by mutableStateOf(name)
     private val sessionState = mutableStateOf<TerminalSession?>(null)
     var session: TerminalSession
@@ -42,22 +46,31 @@ object Sessions {
 
     fun create(
         ctx: Context, name: String? = null, shell: String? = null, cwd: String? = null,
-        initialCommand: String? = null, makeActive: Boolean = true
+        initialCommand: String? = null, makeActive: Boolean = true, kind: SessionKind = SessionKind.SHELL
     ): SessionInfo {
         val app = ctx.applicationContext
         Bootstrap.ensure(app)
         val id = ++counter
-        val sh = shell ?: ShellDetector.default(app)
+        val sh = if (kind == SessionKind.LINUX) "proot" else (shell ?: ShellDetector.default(app))
         val dir = cwd?.takeIf { File(it).isDirectory } ?: startDir(app)
-        val label = name ?: "Session $id"
-        val info = SessionInfo(id, label, sh, dir, initialCommand)
+        val label = name ?: if (kind == SessionKind.LINUX) "Linux" else "Session $id"
+        val info = SessionInfo(id, label, kind, sh, dir, initialCommand)
         info.session = newSession(app, info)
         list.add(info)
         if (makeActive) activeId = id
         startService(app)
         persist(app)
-        NxLog.d("Sessions", "created $label shell=$sh")
+        NxLog.d("Sessions", "created $label kind=$kind shell=$sh")
         return info
+    }
+
+    /**
+     * Boots a session running the bundled Debian rootfs under PRoot (see [LinuxRootfs]). The
+     * caller must have already awaited [LinuxRootfs.ensureExtracted] and gotten `true` back.
+     */
+    fun createLinux(ctx: Context): SessionInfo {
+        val app = ctx.applicationContext
+        return create(ctx, name = "Linux", kind = SessionKind.LINUX, cwd = NxPaths.home(app).absolutePath)
     }
 
     private fun startDir(ctx: Context): String {
@@ -67,8 +80,13 @@ object Sessions {
 
     private fun newSession(app: Context, info: SessionInfo): TerminalSession {
         val client = NexusSessionClient(app, info)
-        return TerminalSession(info.shell, info.cwd, arrayOf(info.shell), TermEnv.build(app, info.shell),
-            AppSettings.scrollback.coerceIn(100, 50000), client)
+        val rows = AppSettings.scrollback.coerceIn(100, 50000)
+        return if (info.kind == SessionKind.LINUX) {
+            val (argv, env) = LinuxRootfs.launchArgs(app)
+            TerminalSession(argv[0], info.cwd, argv, env, rows, client)
+        } else {
+            TerminalSession(info.shell, info.cwd, arrayOf(info.shell), TermEnv.build(app, info.shell), rows, client)
+        }
     }
 
     /** Called by the view client when the emulator for the attached session exists. */
@@ -133,7 +151,9 @@ object Sessions {
         if (info.session.pid > 0) runCatching { File("/proc/${info.session.pid}/cwd").canonicalPath }.getOrDefault(info.cwd) else info.cwd
 
     fun persist(ctx: Context) {
-        AppSettings.savedSessions = Tsv.encodeAll(list.map { listOf(it.name, it.shell, cwdOf(it)) })
+        AppSettings.savedSessions = Tsv.encodeAll(
+            list.filter { it.kind == SessionKind.SHELL }.map { listOf(it.name, it.shell, cwdOf(it)) }
+        )
     }
 
     /** Recreates the sessions from last run (fresh shells in the previous directories). */
