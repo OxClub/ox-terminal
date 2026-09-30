@@ -9,15 +9,24 @@ mkdir -p "$MAIN/assets/linux" "$MAIN/jniLibs/arm64-v8a"
 echo "=== 1/2 Debian rootfs (arm64) ==="
 docker run --privileged --rm tonistiigi/binfmt --install arm64
 cat > "$WORK/Dockerfile" << 'EOF'
-FROM --platform=linux/arm64 debian:bookworm-slim
+ARG TARGETPLATFORM=linux/arm64
+FROM --platform=$TARGETPLATFORM debian:bookworm-slim
 ENV DEBIAN_FRONTEND=noninteractive
-RUN apt-get update && apt-get install -y --no-install-recommends \
+
+RUN apt-get update
+
+RUN apt-get install -y --no-install-recommends \
       bash coreutils procps ca-certificates curl wget git openssh-client \
       python3 python3-pip nodejs build-essential make nano vim-tiny less \
-      grep sed gawk findutils tar gzip xz-utils unzip zip file iputils-ping \
-      openssl netcat-openbsd socat whois dnsutils \
-      nmap hping3 nikto dirb gobuster hydra john hashcat sqlmap \
-    && apt-get clean && rm -rf /var/lib/apt/lists/*
+      grep sed gawk findutils tar gzip xz-utils unzip zip file iputils-ping
+
+RUN apt-get install -y --no-install-recommends \
+      openssl netcat-openbsd socat whois dnsutils
+
+RUN apt-get install -y --no-install-recommends \
+      nmap hping3 nikto dirb gobuster hydra john hashcat sqlmap
+
+RUN apt-get clean && rm -rf /var/lib/apt/lists/*
 EOF
 docker buildx build --platform linux/arm64 --load -t nexus-debian "$WORK"
 CID="$(docker create --platform linux/arm64 nexus-debian)"
