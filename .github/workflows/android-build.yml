@@ -62,7 +62,7 @@ jobs:
   release:
     runs-on: ubuntu-latest
     permissions: { contents: read }
-    if: github.event_name == 'workflow_dispatch' && secrets.KEYSTORE_PATH != ''
+    if: github.event_name == 'workflow_dispatch'
 
     steps:
       - uses: actions/checkout@v4

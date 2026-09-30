@@ -5,7 +5,7 @@ plugins {
 
 android {
     namespace = "com.nexus.terminal"
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "com.nexus.terminal"
