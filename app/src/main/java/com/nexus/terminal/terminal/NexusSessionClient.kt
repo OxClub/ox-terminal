@@ -39,7 +39,6 @@ class NexusSessionClient(private val app: Context, private val info: SessionInfo
 
     override fun onColorsChanged(session: TerminalSession) {}
     override fun onTerminalCursorStateChange(state: Boolean) {}
-    override fun setTerminalShellPid(session: TerminalSession, pid: Int) { info.pid = pid }
     override fun getTerminalCursorStyle(): Int? = AppSettings.cursorStyle
 
     override fun logError(tag: String?, message: String?) { NxLog.e(tag ?: "term", message ?: "") }

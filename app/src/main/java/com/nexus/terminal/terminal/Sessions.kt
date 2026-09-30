@@ -130,7 +130,7 @@ object Sessions {
 
     /** Current working directory of a session's shell, if readable. */
     fun cwdOf(info: SessionInfo): String =
-        if (info.pid > 0) runCatching { File("/proc/${info.pid}/cwd").canonicalPath }.getOrDefault(info.cwd) else info.cwd
+        if (info.session.pid > 0) runCatching { File("/proc/${info.session.pid}/cwd").canonicalPath }.getOrDefault(info.cwd) else info.cwd
 
     fun persist(ctx: Context) {
         AppSettings.savedSessions = Tsv.encodeAll(list.map { listOf(it.name, it.shell, cwdOf(it)) })

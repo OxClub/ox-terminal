@@ -107,7 +107,7 @@ fun TerminalScreen(fullscreen: Boolean, onToggleFullscreen: () -> Unit, onNaviga
     if (showPress && active != null) {
         ModalBottomSheet(onDismissRequest = { showPress = false }) {
             Column(Modifier.padding(bottom = 24.dp)) {
-                fun item(text: String, icon: androidx.compose.ui.graphics.vector.ImageVector, action: () -> Unit) =
+                @Composable fun item(text: String, icon: androidx.compose.ui.graphics.vector.ImageVector, action: () -> Unit) =
                     ListItem(headlineContent = { Text(text) }, leadingContent = { Icon(icon, null) },
                         modifier = Modifier.clickable { showPress = false; action() })
                 val copy = { txt: String -> ShareUtil.copy(ctx, txt); toast(ctx, "Copied") }
@@ -119,7 +119,7 @@ fun TerminalScreen(fullscreen: Boolean, onToggleFullscreen: () -> Unit, onNaviga
                     onShare = { ShareUtil.shareText(ctx, Sessions.transcript(active)) },
                     onClear = { active.send("\u000c") },
                     onSave = { saveOutput(ctx, Sessions.transcript(active)) },
-                    item = ::item
+                    item = { t, i, a -> item(t, i, a) }
                 )
             }
         }
@@ -136,7 +136,7 @@ fun TerminalScreen(fullscreen: Boolean, onToggleFullscreen: () -> Unit, onNaviga
 private fun LongPressItems(
     onSelect: () -> Unit, onCopyAll: () -> Unit, onPaste: () -> Unit, onSearch: () -> Unit,
     onShare: () -> Unit, onClear: () -> Unit, onSave: () -> Unit,
-    item: (String, androidx.compose.ui.graphics.vector.ImageVector, () -> Unit) -> Unit
+    item: @Composable (String, androidx.compose.ui.graphics.vector.ImageVector, () -> Unit) -> Unit
 ) {
     // "Copy" starts native text selection (handles + copy action); "Select All" copies the full terminal.
     item("Copy (select text)", Icons.Filled.ContentCopy, onSelect)

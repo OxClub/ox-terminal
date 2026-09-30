@@ -1,3 +1,5 @@
+@file:OptIn(androidx.compose.foundation.ExperimentalFoundationApi::class)
+
 package com.nexus.terminal.ui.screens
 
 import android.content.Context
@@ -23,6 +25,7 @@ import com.nexus.terminal.files.FileOps
 import com.nexus.terminal.files.SortMode
 import com.nexus.terminal.terminal.Sessions
 import com.nexus.terminal.ui.ScreenScaffold
+import com.nexus.terminal.ui.TextInputDialog
 import com.nexus.terminal.util.NxPaths
 import com.nexus.terminal.util.ShareUtil
 import java.io.File
