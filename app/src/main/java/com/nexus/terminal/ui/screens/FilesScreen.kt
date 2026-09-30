@@ -1,3 +1,4 @@
+import androidx.compose.foundation.ExperimentalFoundationApi
 package com.nexus.terminal.ui.screens
 
 import android.content.Context

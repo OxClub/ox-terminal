@@ -1,3 +1,4 @@
+import androidx.compose.ui.window.Dialog
 @file:OptIn(ExperimentalMaterial3Api::class)
 
 package com.nexus.terminal.ui.screens
