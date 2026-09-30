@@ -10,3 +10,6 @@
 .cxx
 *.jks
 *.keystore
+
+app/src/main/assets/linux/
+app/src/main/jniLibs/

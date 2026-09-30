@@ -5,6 +5,7 @@ plugins {
 
 android {
     namespace = "com.nexus.terminal"
+    androidResources { noCompress += listOf("gz") }
     compileSdk = 35
 
     defaultConfig {
