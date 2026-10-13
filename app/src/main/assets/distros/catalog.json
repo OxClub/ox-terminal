@@ -1,0 +1,40 @@
+{
+  "distros": [
+    {
+      "id": "alpine",
+      "name": "Alpine Linux",
+      "version": "3.24.0",
+      "sizeMb": 4,
+      "url": "https://dl-cdn.alpinelinux.org/alpine/v3.24/releases/aarch64/alpine-minirootfs-3.24.0-aarch64.tar.gz",
+      "sha256url": "https://dl-cdn.alpinelinux.org/alpine/v3.24/releases/aarch64/alpine-minirootfs-3.24.0-aarch64.tar.gz.sha256",
+      "initCmds": ["apk update"]
+    },
+    {
+      "id": "debian",
+      "name": "Debian 12 (Bookworm)",
+      "version": "12",
+      "sizeMb": 120,
+      "url": "https://images.linuxcontainers.org/images/debian/bookworm/arm64/default/20240601_05:24/rootfs.tar.xz",
+      "sha256url": "",
+      "initCmds": ["apt-get update"]
+    },
+    {
+      "id": "ubuntu",
+      "name": "Ubuntu 22.04 (Jammy)",
+      "version": "22.04",
+      "sizeMb": 130,
+      "url": "https://images.linuxcontainers.org/images/ubuntu/jammy/arm64/default/20240601_07:42/rootfs.tar.xz",
+      "sha256url": "",
+      "initCmds": ["apt-get update"]
+    },
+    {
+      "id": "archlinux",
+      "name": "Arch Linux ARM",
+      "version": "rolling",
+      "sizeMb": 150,
+      "url": "https://images.linuxcontainers.org/images/archlinux/current/arm64/default/20240601_04:12/rootfs.tar.xz",
+      "sha256url": "",
+      "initCmds": ["pacman -Sy"]
+    }
+  ]
+}

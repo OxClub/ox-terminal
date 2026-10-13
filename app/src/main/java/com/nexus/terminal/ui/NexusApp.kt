@@ -108,6 +108,7 @@ fun NexusApp(startRoute: String, pendingPkg: Pair<String, String>?, onPendingHan
                 composable("runner") { RunnerScreen(back) { p -> go("editor?path=" + Uri.encode(p)) } }
                 composable("ssh") { SshScreen(back, go) }
                 composable("env") { EnvScreen(back) }
+                composable("distros") { DistrosScreen(back, go) }
                 composable("aliases") { AliasScreen(back) }
                 composable("bookmarks") { BookmarksScreen(back, go) }
                 composable("history") { HistoryScreen(back, go) }

@@ -47,6 +47,7 @@ fun SettingsScreen(go: (String) -> Unit) {
                     }
                 }
             }
+            item { SectionCard("Linux") { Button(onClick = { go("distros") }, Modifier.fillMaxWidth()) { Text("Linux Distros") } } }
             item { Text("Data", style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.primary) }
             item {
                 SectionCard("History & Bookmarks") {
