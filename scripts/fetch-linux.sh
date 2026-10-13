@@ -6,37 +6,6 @@ MAIN="$ROOT/app/src/main"
 WORK="$(mktemp -d)"
 mkdir -p "$MAIN/assets/linux" "$MAIN/jniLibs/arm64-v8a"
 
-echo "=== 1/2 Debian rootfs (arm64) ==="
-docker run --privileged --rm tonistiigi/binfmt --install arm64
-cat > "$WORK/Dockerfile" << 'EOF'
-FROM debian:bookworm-slim
-ENV DEBIAN_FRONTEND=noninteractive
-
-RUN apt-get update
-
-RUN apt-get install -y --no-install-recommends \
-      bash coreutils procps ca-certificates curl wget git openssh-client \
-      python3 python3-pip nodejs build-essential make nano vim-tiny less \
-      grep sed gawk findutils tar gzip xz-utils unzip zip file iputils-ping
-
-RUN apt-get install -y --no-install-recommends \
-      openssl netcat-openbsd socat whois dnsutils
-
-# Try each security tool individually so a single missing/renamed arm64
-# package doesn't abort the whole build; failures are logged, not fatal.
-RUN for pkg in nmap hping3 nikto dirb gobuster hydra john hashcat sqlmap; do \
-      echo "=== installing $pkg ==="; \
-      apt-get install -y --no-install-recommends "$pkg" \
-        || echo "!!! FAILED (skipped): $pkg"; \
-    done
-
-RUN apt-get clean && rm -rf /var/lib/apt/lists/*
-EOF
-docker buildx build --platform linux/arm64 --load -t nexus-debian "$WORK"
-CID="$(docker create --platform linux/arm64 nexus-debian)"
-docker export "$CID" | gzip -6 > "$MAIN/assets/linux/rootfs.tar.gz"
-docker rm "$CID" >/dev/null
-ls -lh "$MAIN/assets/linux/rootfs.tar.gz"
 
 echo "=== 2/2 PRoot (from the Termux package repository) ==="
 REPO="https://packages.termux.dev/apt/termux-main"

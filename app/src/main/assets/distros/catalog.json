@@ -14,7 +14,7 @@
       "name": "Debian 12 (Bookworm)",
       "version": "12",
       "sizeMb": 120,
-      "url": "https://images.linuxcontainers.org/images/debian/bookworm/arm64/default/20240601_05:24/rootfs.tar.xz",
+      "url": "https://github.com/debuerreotype/docker-debian-artifacts/raw/dist-arm64v8/bookworm/slim/rootfs.tar.xz",
       "sha256url": "",
       "initCmds": ["apt-get update"]
     },
@@ -23,7 +23,7 @@
       "name": "Ubuntu 22.04 (Jammy)",
       "version": "22.04",
       "sizeMb": 130,
-      "url": "https://images.linuxcontainers.org/images/ubuntu/jammy/arm64/default/20240601_07:42/rootfs.tar.xz",
+      "url": "https://cdimage.ubuntu.com/ubuntu-base/releases/22.04/release/ubuntu-base-22.04.5-base-arm64.tar.gz",
       "sha256url": "",
       "initCmds": ["apt-get update"]
     },
@@ -32,7 +32,7 @@
       "name": "Arch Linux ARM",
       "version": "rolling",
       "sizeMb": 150,
-      "url": "https://images.linuxcontainers.org/images/archlinux/current/arm64/default/20240601_04:12/rootfs.tar.xz",
+      "url": "http://os.archlinuxarm.org/os/ArchLinuxARM-aarch64-latest.tar.gz",
       "sha256url": "",
       "initCmds": ["pacman -Sy"]
     }
