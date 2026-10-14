@@ -1,86 +1,97 @@
 package com.nexus.terminal.ui.screens
 
-import android.app.ActivityManager
-import android.content.Context
-import android.os.StatFs
-import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.filled.Download
+import androidx.compose.material.icons.filled.Folder
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import androidx.compose.foundation.shape.RoundedCornerShape
-import com.nexus.terminal.data.BookmarkStore
-import com.nexus.terminal.data.CommandHistory
-import com.nexus.terminal.files.FileOps
+import com.nexus.terminal.distro.Distro
+import com.nexus.terminal.distro.DistroLaunch
+import com.nexus.terminal.distro.DistroManager
 import com.nexus.terminal.terminal.Sessions
-import com.nexus.terminal.ui.SectionCard
-import com.nexus.terminal.util.NxPaths
-import java.io.File
+import com.nexus.terminal.ui.ScreenScaffold
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 @Composable
-fun HomeScreen(go: (String) -> Unit) {
+fun HomeScreen(back: () -> Unit, go: (String) -> Unit) {
     val ctx = LocalContext.current
-    val sessions = Sessions.list.count { !it.exited }
-    val historySize = CommandHistory.all().size
-    val bookmarks = BookmarkStore.all().size
-    var storage by remember { mutableStateOf("") }
-    var procCount by remember { mutableStateOf(0) }
-    LaunchedEffect(Unit) {
-        storage = runCatching {
-            val st = StatFs(NxPaths.home(ctx).absolutePath)
-            val free = st.availableBlocksLong * st.blockSizeLong
-            val total = st.blockCountLong * st.blockSizeLong
-            "${FileOps.formatSize(free)} / ${FileOps.formatSize(total)}"
-        }.getOrDefault("–")
-        val am = ctx.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
-        procCount = am.runningAppProcesses?.size ?: 0
-    }
-    LazyColumn(Modifier.fillMaxSize().padding(16.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
-        item { Text("Dashboard", style = MaterialTheme.typography.headlineMedium) }
-        item {
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                QuickStat("${sessions}", "Session${if (sessions == 1) "" else "s"}", Icons.Filled.Terminal, Modifier.weight(1f))
-                QuickStat("${historySize}", "Commands", Icons.Filled.History, Modifier.weight(1f))
-            }
-        }
-        item {
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                QuickStat("${bookmarks}", "Bookmark${if (bookmarks == 1) "" else "s"}", Icons.Filled.Bookmark, Modifier.weight(1f))
-                QuickStat("${procCount}", "Process${if (procCount == 1) "" else "es"}", Icons.Filled.Memory, Modifier.weight(1f))
-            }
-        }
-        item {
-            SectionCard("Quick Actions") {
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    OutlinedButton(onClick = { Sessions.create(ctx) }, modifier = Modifier.weight(1f)) { Text("New terminal") }
-                    OutlinedButton(onClick = { go("files") }, modifier = Modifier.weight(1f)) { Text("Files") }
-                }
-                Row(Modifier.fillMaxWidth().padding(top = 8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    OutlinedButton(onClick = { go("packages") }, modifier = Modifier.weight(1f)) { Text("Packages") }
-                    OutlinedButton(onClick = { go("settings") }, modifier = Modifier.weight(1f)) { Text("Settings") }
-                }
-            }
-        }
-        item {
-            SectionCard("Storage") {
-                Text(storage, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.fillMaxWidth())
-            }
-        }
-        if (historySize > 0) {
+    val scope = rememberCoroutineScope()
+    val distros = remember { runCatching { DistroManager.catalog(ctx) }.getOrDefault(emptyList()) }
+    var installed by remember { mutableStateOf(distros.filter { DistroManager.isInstalled(ctx, it.id) }.map { it.id }.toSet()) }
+    var busyId by remember { mutableStateOf<String?>(null) }
+    var progressText by remember { mutableStateOf("") }
+    var progressPct by remember { mutableIntStateOf(-1) }
+    var error by remember { mutableStateOf<String?>(null) }
+
+    ScreenScaffold(title = "Nexus Terminal", onBack = back) { pad ->
+        LazyColumn(Modifier.fillMaxSize().padding(pad).padding(horizontal = 12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             item {
-                SectionCard("Recent Commands", trailing = { TextButton(onClick = { go("history") }) { Text("View all") } }) {
-                    val recent = CommandHistory.all().take(5)
-                    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                        recent.forEach {
-                            Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState())) {
-                                Text(it.cmd, maxLines = 1, style = MaterialTheme.typography.bodySmall)
+                Text("📥 Linux Distributions", style = MaterialTheme.typography.headlineSmall, modifier = Modifier.padding(vertical = 8.dp))
+            }
+            
+            items(distros) { d ->
+                val isInstalled = d.id in installed
+                val isBusy = busyId == d.id
+                
+                ElevatedCard(Modifier.fillMaxWidth()) {
+                    Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                            Column(Modifier.weight(1f)) {
+                                Text(d.name, style = MaterialTheme.typography.titleMedium)
+                                Text("v${d.version}  •  ${d.sizeMb} MB", style = MaterialTheme.typography.bodySmall)
+                            }
+                            if (isInstalled) {
+                                Surface(color = MaterialTheme.colorScheme.primary, modifier = Modifier.padding(4.dp)) {
+                                    Text("✓", modifier = Modifier.padding(4.dp), color = MaterialTheme.colorScheme.onPrimary)
+                                }
+                            }
+                        }
+                        
+                        if (isBusy) {
+                            Text(progressText, style = MaterialTheme.typography.bodySmall)
+                            if (progressPct in 0..100) LinearProgressIndicator(progress = { progressPct / 100f }, modifier = Modifier.fillMaxWidth())
+                            else LinearProgressIndicator(Modifier.fillMaxWidth())
+                        }
+                        
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            if (!isInstalled) {
+                                Button(enabled = busyId == null, onClick = {
+                                    scope.launch {
+                                        busyId = d.id
+                                        try {
+                                            withContext(Dispatchers.IO) {
+                                                DistroManager.install(ctx, d) { msg, pct ->
+                                                    progressText = msg
+                                                    progressPct = pct
+                                                }
+                                            }
+                                            installed = installed + d.id
+                                        } catch (e: Exception) {
+                                            error = "Install failed: ${e.message}"
+                                        }
+                                        busyId = null
+                                    }
+                                }, modifier = Modifier.weight(1f)) {
+                                    Text("Install")
+                                }
+                            } else {
+                                Button(onClick = {
+                                    go("terminal")
+                                    scope.launch(Dispatchers.IO) {
+                                        val cmd = DistroLaunch.command(ctx, d.id)
+                                        Sessions.create(ctx, d.name, cmd)
+                                    }
+                                }, modifier = Modifier.weight(1f)) {
+                                    Text("Open")
+                                }
                             }
                         }
                     }
@@ -88,16 +99,13 @@ fun HomeScreen(go: (String) -> Unit) {
             }
         }
     }
-}
 
-@Composable
-private fun QuickStat(value: String, label: String, icon: androidx.compose.ui.graphics.vector.ImageVector, modifier: Modifier = Modifier) {
-    Surface(shape = RoundedCornerShape(14.dp), color = MaterialTheme.colorScheme.primaryContainer, modifier = modifier) {
-        Column(Modifier.padding(16.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
-            Icon(icon, null, tint = MaterialTheme.colorScheme.onPrimaryContainer, modifier = Modifier.size(28.dp))
-            Spacer(Modifier.height(8.dp))
-            Text(value, style = MaterialTheme.typography.headlineSmall)
-            Text(label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onPrimaryContainer)
-        }
+    if (error != null) {
+        AlertDialog(
+            onDismissRequest = { error = null },
+            title = { Text("Error") },
+            text = { Text(error ?: "") },
+            confirmButton = { Button(onClick = { error = null }) { Text("OK") } }
+        )
     }
 }
