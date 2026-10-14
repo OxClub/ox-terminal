@@ -3,13 +3,12 @@ package com.nexus.terminal.distro
 import android.content.Context
 
 object DistroLaunch {
-    private fun q(s: String) = "'" + s.replace("'", "'\\''") + "'"
-
     fun command(ctx: Context, id: String): String {
-        val exports = DistroManager.launchEnv(ctx).joinToString("; ") { e ->
-            "export " + e.substringBefore("=") + "=" + q(e.substringAfter("="))
+        val rootfs = DistroManager.rootfs(ctx, id).absolutePath
+        val env = DistroManager.launchEnv(ctx).joinToString(" ") { e ->
+            val parts = e.split("=", limit = 2)
+            "${parts[0]}='${parts.getOrNull(1) ?: ""}'"
         }
-        val argv = DistroManager.launchArgv(ctx, id).joinToString(" ") { q(it) }
-        return "$exports; exec $argv"
+        return "cd '$rootfs' && env $env /bin/sh"
     }
 }

@@ -12,7 +12,6 @@ import com.nexus.terminal.distro.Distro
 import com.nexus.terminal.distro.DistroLaunch
 import com.nexus.terminal.distro.DistroManager
 import com.nexus.terminal.terminal.Sessions
-import com.nexus.terminal.ui.ConfirmDialog
 import com.nexus.terminal.ui.MessageDialog
 import com.nexus.terminal.ui.ScreenScaffold
 import kotlinx.coroutines.Dispatchers
@@ -29,7 +28,7 @@ fun DistrosScreen(back: () -> Unit, go: (String) -> Unit) {
     var progressText by remember { mutableStateOf("") }
     var progressPct by remember { mutableIntStateOf(-1) }
     var error by remember { mutableStateOf<String?>(null) }
-    var toDelete by remember { mutableStateOf<Distro?>(null) }
+    var toDelete by remember { mutableStateOf<String?>(null) }
 
     ScreenScaffold(title = "Linux Distros", onBack = back) { pad ->
         LazyColumn(Modifier.fillMaxSize().padding(pad).padding(horizontal = 12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -39,7 +38,7 @@ fun DistrosScreen(back: () -> Unit, go: (String) -> Unit) {
                 ElevatedCard(Modifier.fillMaxWidth()) {
                     Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                         Text(d.name, style = MaterialTheme.typography.titleMedium)
-                        Text("Version ${d.version}  •  ~${d.sizeMb} MB download", style = MaterialTheme.typography.bodySmall)
+                        Text("Version ${d.version}  •  ~${d.sizeMb} MB", style = MaterialTheme.typography.bodySmall)
                         if (isBusy) {
                             Text(progressText, style = MaterialTheme.typography.bodySmall)
                             if (progressPct in 0..100) LinearProgressIndicator(progress = { progressPct / 100f }, modifier = Modifier.fillMaxWidth())
@@ -48,24 +47,37 @@ fun DistrosScreen(back: () -> Unit, go: (String) -> Unit) {
                         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                             if (!isInstalled) {
                                 Button(enabled = busyId == null, onClick = {
-                                    busyId = d.id; progressText = "Starting"; progressPct = -1
                                     scope.launch {
+                                        busyId = d.id
                                         try {
                                             withContext(Dispatchers.IO) {
-                                                DistroManager.install(ctx, d) { msg, pct -> progressText = msg; progressPct = pct }
+                                                DistroManager.install(ctx, d) { msg, pct ->
+                                                    progressText = msg
+                                                    progressPct = pct
+                                                }
                                             }
                                             installed = installed + d.id
                                         } catch (e: Exception) {
-                                            error = "${d.name}: ${e.message ?: e.javaClass.simpleName}"
-                                        } finally { busyId = null }
+                                            error = e.message ?: "Install failed"
+                                        }
+                                        busyId = null
                                     }
-                                }) { Text("Install") }
+                                }) {
+                                    Text("Install")
+                                }
                             } else {
-                                Button(enabled = busyId == null, onClick = {
-                                    Sessions.create(ctx, name = d.name, initialCommand = DistroLaunch.command(ctx, d.id))
+                                Button(onClick = {
                                     go("terminal")
-                                }) { Text("Open") }
-                                OutlinedButton(enabled = busyId == null, onClick = { toDelete = d }) { Text("Delete") }
+                                    scope.launch {
+                                        val cmd = DistroLaunch.command(ctx, d.id)
+                                        Sessions.create(ctx, d.name, cmd)
+                                    }
+                                }) {
+                                    Text("Open")
+                                }
+                                Button(onClick = { toDelete = d.id }) {
+                                    Text("Delete")
+                                }
                             }
                         }
                     }
@@ -73,10 +85,24 @@ fun DistrosScreen(back: () -> Unit, go: (String) -> Unit) {
             }
         }
     }
-    error?.let { MessageDialog("Install failed", it) { error = null } }
-    toDelete?.let { d ->
-        ConfirmDialog("Delete ${d.name}?", "Isme install kiya gaya sab kuch hat jayega.", "Delete",
-            onConfirm = { DistroManager.delete(ctx, d.id); installed = installed - d.id; toDelete = null },
-            onDismiss = { toDelete = null })
+
+    if (error != null) {
+        MessageDialog(title = "Error", message = error ?: "", onDismiss = { error = null })
+    }
+
+    if (toDelete != null) {
+        AlertDialog(
+            onDismissRequest = { toDelete = null },
+            title = { Text("Delete Distro") },
+            text = { Text("Remove ${toDelete}? This cannot be undone.") },
+            confirmButton = {
+                Button(onClick = {
+                    DistroManager.uninstall(ctx, toDelete!!)
+                    installed = installed - toDelete!!
+                    toDelete = null
+                }) { Text("Delete") }
+            },
+            dismissButton = { Button(onClick = { toDelete = null }) { Text("Cancel") } }
+        )
     }
 }
