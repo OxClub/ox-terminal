@@ -1,0 +1,7 @@
+--- old
++++ new
+@@ -92,7 +92,7 @@
+             }
+         }
+-        composable("home") { HomeScreen(back) }
++        composable("home") { HomeScreen(back, go) }
