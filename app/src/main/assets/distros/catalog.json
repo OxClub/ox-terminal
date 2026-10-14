@@ -14,7 +14,7 @@
       "name": "Debian 12 (Bookworm)",
       "version": "12",
       "sizeMb": 120,
-      "url": "https://github.com/debuerreotype/docker-debian-artifacts/raw/dist-arm64v8/bookworm/slim/rootfs.tar.xz",
+      "url": "https://github.com/debuerreotype/docker-debian-artifacts/raw/refs/heads/dist-arm64v8/bookworm/slim/oci/blobs/rootfs.tar.gz",
       "sha256url": "",
       "initCmds": ["apt-get update"]
     },
@@ -32,7 +32,7 @@
       "name": "Arch Linux ARM",
       "version": "rolling",
       "sizeMb": 150,
-      "url": "http://os.archlinuxarm.org/os/ArchLinuxARM-aarch64-latest.tar.gz",
+      "url": "https://os.archlinuxarm.org/os/ArchLinuxARM-aarch64-latest.tar.gz",
       "sha256url": "",
       "initCmds": ["pacman -Sy"]
     }

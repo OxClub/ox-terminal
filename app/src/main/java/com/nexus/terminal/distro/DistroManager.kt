@@ -212,7 +212,7 @@ object DistroManager {
             "PROOT_LOADER=$lib/libproot-loader.so",
             "PROOT_LOADER_32=$lib/libproot-loader32.so",
             "PROOT_TMP_DIR=${NxPaths.tmp(ctx).absolutePath}",
-            "LD_LIBRARY_PATH=$lib"
+            "LD_LIBRARY_PATH=${shimDir(ctx)}:$lib"
         )
     }
 }
