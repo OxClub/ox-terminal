@@ -86,8 +86,7 @@ fun HomeScreen(back: () -> Unit, go: (String) -> Unit) {
                                 Button(onClick = {
                                     go("terminal")
                                     scope.launch(Dispatchers.IO) {
-                                        val cmd = DistroLaunch.command(ctx, d.id)
-                                        Sessions.create(ctx, d.name, cmd)
+                                        Sessions.create(ctx, name = d.name, kind = com.nexus.terminal.terminal.SessionKind.DISTRO, distroId = d.id)
                                     }
                                 }, modifier = Modifier.weight(1f)) {
                                     Text("Open")

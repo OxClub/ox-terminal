@@ -13,11 +13,6 @@ import org.apache.commons.compress.archivers.tar.TarArchiveInputStream
 import java.io.File
 import java.io.IOException
 
-/**
- * Boots into the Debian rootfs bundled by `scripts/fetch-linux.sh` (assets/linux/rootfs.tar.gz +
- * jniLibs/arm64-v8a/libproot*.so), run under PRoot. Nothing here downloads anything at runtime —
- * it only unpacks what's already inside the APK, once, on first use.
- */
 object LinuxRootfs {
     val busy = mutableStateOf(false)
     val progress = mutableStateOf("")
@@ -25,7 +20,6 @@ object LinuxRootfs {
 
     private const val ASSET_PATH = "linux/rootfs.tar"
     private const val STAMP_NAME = "rootfs.stamp"
-    // Bump this if fetch-linux.sh ever produces an incompatible rootfs layout, to force re-extraction.
     private const val ROOTFS_VERSION = "1"
 
     private fun rootDir(ctx: Context) = File(ctx.filesDir, "linux").also { it.mkdirs() }
@@ -48,7 +42,6 @@ object LinuxRootfs {
         return dir
     }
 
-    /** True only when both the rootfs asset and the PRoot native libraries were bundled at build time. */
     fun isBundled(ctx: Context): Boolean = try {
         ctx.assets.open(ASSET_PATH).close()
         prootBin(ctx).canExecute() && prootLoader(ctx).isFile
@@ -59,10 +52,6 @@ object LinuxRootfs {
     fun isExtracted(ctx: Context): Boolean =
         stampFile(ctx).let { it.exists() && it.readText() == ROOTFS_VERSION } && File(rootfsDir(ctx), "bin").isDirectory
 
-    /**
-     * Extracts the bundled rootfs the first time it's needed. Safe to call every time a Linux
-     * session is requested; it's a no-op once the stamp file matches [ROOTFS_VERSION].
-     */
     suspend fun ensureExtracted(ctx: Context): Boolean = withContext(Dispatchers.IO) {
         if (isExtracted(ctx)) return@withContext true
         val app = ctx.applicationContext
@@ -101,7 +90,6 @@ object LinuxRootfs {
         }
     }
 
-    /** Guards against tar-slip: every extracted path must stay inside [dest]. */
     private fun safeTarget(dest: File, entryName: String): File {
         val out = File(dest, entryName)
         val root = dest.canonicalPath + File.separator
@@ -111,9 +99,6 @@ object LinuxRootfs {
     }
 
     private fun extractEntry(dest: File, e: TarArchiveEntry, tin: TarArchiveInputStream) {
-        // A Debian rootfs from `docker export` also contains device nodes that a plain tar reader
-        // can't (and shouldn't) recreate without root; PRoot binds /dev, /proc and /sys itself at
-        // launch, so anything that isn't a directory, file or link is safely skipped here.
         val out = safeTarget(dest, e.name)
         when {
             e.isDirectory -> out.mkdirs()
@@ -143,18 +128,17 @@ object LinuxRootfs {
         }
     }
 
-    /** Host-side argv/env for the PRoot process that boots into the extracted rootfs. */
-    fun launchArgs(ctx: Context): Pair<Array<String>, Array<String>> {
+    /** Host-side argv/env for a PRoot process that boots into [root] (ANY extracted rootfs dir) and execs [shell]. */
+    fun launchArgsFor(ctx: Context, root: File, shell: String): Pair<Array<String>, Array<String>> {
         val app = ctx.applicationContext
         val proot = prootBin(app).path
-        val root = rootfsDir(app).path
         val argv = arrayOf(
-            proot, "-r", root, "-0", "-w", "/root",
+            proot, "-r", root.path, "-0", "-w", "/root",
             "-b", "/dev", "-b", "/proc", "-b", "/sys",
             "/usr/bin/env", "-i",
             "HOME=/root", "TERM=xterm-256color", "LANG=C.UTF-8",
             "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
-            "/bin/bash", "--login"
+            shell
         )
         val env = arrayOf(
             "LD_LIBRARY_PATH=" + libShimDir(app).path + ":" + nativeLibDir(app).path,
@@ -162,5 +146,11 @@ object LinuxRootfs {
             "PROOT_TMP_DIR=" + NxPaths.tmp(app).path
         )
         return argv to env
+    }
+
+    /** Host-side argv/env for the PRoot process that boots into the bundled Debian rootfs. */
+    fun launchArgs(ctx: Context): Pair<Array<String>, Array<String>> {
+        val (argv, env) = launchArgsFor(ctx, rootfsDir(ctx.applicationContext), "/bin/bash")
+        return (argv + "--login") to env
     }
 }

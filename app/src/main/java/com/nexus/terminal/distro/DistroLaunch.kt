@@ -1,14 +1,12 @@
 package com.nexus.terminal.distro
 
 import android.content.Context
+import com.nexus.terminal.terminal.LinuxRootfs
 
 object DistroLaunch {
-    fun command(ctx: Context, id: String): String {
-        val rootfs = DistroManager.rootfs(ctx, id).absolutePath
-        val env = DistroManager.launchEnv(ctx).joinToString(" ") { e ->
-            val parts = e.split("=", limit = 2)
-            "${parts[0]}='${parts.getOrNull(1) ?: ""}'"
-        }
-        return "cd '$rootfs' && env $env /bin/sh"
+    /** Host-side argv/env for a PRoot process that boots into this distro's own extracted rootfs. */
+    fun launchArgs(ctx: Context, id: String): Pair<Array<String>, Array<String>> {
+        val root = DistroManager.rootfs(ctx, id)
+        return LinuxRootfs.launchArgsFor(ctx, root, "/bin/sh")
     }
 }

@@ -11,10 +11,11 @@ import com.termux.terminal.TerminalSession
 import com.termux.view.TerminalView
 import java.io.File
 
-enum class SessionKind { SHELL, LINUX }
+enum class SessionKind { SHELL, LINUX, DISTRO }
 
 class SessionInfo(
-    val id: Int, name: String, val kind: SessionKind, val shell: String, val cwd: String, val initialCommand: String?
+    val id: Int, name: String, val kind: SessionKind, val shell: String, val cwd: String, val initialCommand: String?,
+    val distroId: String? = null
 ) {
     var name by mutableStateOf(name)
     private val sessionState = mutableStateOf<TerminalSession?>(null)
@@ -46,15 +47,16 @@ object Sessions {
 
     fun create(
         ctx: Context, name: String? = null, shell: String? = null, cwd: String? = null,
-        initialCommand: String? = null, makeActive: Boolean = true, kind: SessionKind = SessionKind.SHELL
+        initialCommand: String? = null, makeActive: Boolean = true, kind: SessionKind = SessionKind.SHELL,
+        distroId: String? = null
     ): SessionInfo {
         val app = ctx.applicationContext
         Bootstrap.ensure(app)
         val id = ++counter
-        val sh = if (kind == SessionKind.LINUX) "proot" else (shell ?: ShellDetector.default(app))
+        val sh = if (kind == SessionKind.LINUX || kind == SessionKind.DISTRO) "proot" else (shell ?: ShellDetector.default(app))
         val dir = cwd?.takeIf { File(it).isDirectory } ?: startDir(app)
-        val label = name ?: if (kind == SessionKind.LINUX) "Linux" else "Session $id"
-        val info = SessionInfo(id, label, kind, sh, dir, initialCommand)
+        val label = name ?: if (kind == SessionKind.LINUX || kind == SessionKind.DISTRO) "Linux" else "Session $id"
+        val info = SessionInfo(id, label, kind, sh, dir, initialCommand, distroId)
         info.session = newSession(app, info)
         list.add(info)
         if (makeActive) activeId = id
@@ -81,11 +83,16 @@ object Sessions {
     private fun newSession(app: Context, info: SessionInfo): TerminalSession {
         val client = NexusSessionClient(app, info)
         val rows = AppSettings.scrollback.coerceIn(100, 50000)
-        return if (info.kind == SessionKind.LINUX) {
-            val (argv, env) = LinuxRootfs.launchArgs(app)
-            TerminalSession(argv[0], info.cwd, argv, env, rows, client)
-        } else {
-            TerminalSession(info.shell, info.cwd, arrayOf(info.shell), TermEnv.build(app, info.shell), rows, client)
+        return when (info.kind) {
+            SessionKind.LINUX -> {
+                val (argv, env) = LinuxRootfs.launchArgs(app)
+                TerminalSession(argv[0], info.cwd, argv, env, rows, client)
+            }
+            SessionKind.DISTRO -> {
+                val (argv, env) = com.nexus.terminal.distro.DistroLaunch.launchArgs(app, info.distroId!!)
+                TerminalSession(argv[0], info.cwd, argv, env, rows, client)
+            }
+            else -> TerminalSession(info.shell, info.cwd, arrayOf(info.shell), TermEnv.build(app, info.shell), rows, client)
         }
     }
 
