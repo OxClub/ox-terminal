@@ -92,7 +92,7 @@ fun NexusApp(startRoute: String, pendingPkg: Pair<String, String>?, onPendingHan
                 Spacer(Modifier.weight(1f))
             }
             NavHost(nav, startDestination = startRoute, modifier = Modifier.weight(1f)) {
-                composable("home") { HomeScreen(go) }
+                composable("home") { HomeScreen(back = { nav.popBackStack() }, go = go) }
                 composable("terminal") {
                     TerminalScreen(fullscreen.value, { fullscreen.value = !fullscreen.value }, go)
                 }
