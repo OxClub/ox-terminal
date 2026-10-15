@@ -69,8 +69,7 @@ fun DistrosScreen(back: () -> Unit, go: (String) -> Unit) {
                                 Button(onClick = {
                                     go("terminal")
                                     scope.launch {
-                                        val cmd = DistroLaunch.command(ctx, d.id)
-                                        Sessions.create(ctx, d.name, cmd)
+                                        Sessions.create(ctx, name = d.name, kind = com.nexus.terminal.terminal.SessionKind.DISTRO, distroId = d.id)
                                     }
                                 }) {
                                     Text("Open")
