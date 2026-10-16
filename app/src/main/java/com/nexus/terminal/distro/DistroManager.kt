@@ -1,11 +1,13 @@
 package com.nexus.terminal.distro
 
 import android.content.Context
+import android.system.Os
 import com.nexus.terminal.util.NxPaths
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream
 import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream
 import org.json.JSONObject
 import java.io.File
+import java.io.IOException
 import java.net.URL
 
 data class Distro(
@@ -53,6 +55,7 @@ object DistroManager {
             progress("Extracting...", 50)
             extractRootfs(tarFile, rootfs(ctx, distro.id))
             progress("Finalizing...", 90)
+            tarFile.delete()
             marker(ctx, distro.id).createNewFile()
             progress("Done!", 100)
         } catch (e: Exception) {
@@ -74,37 +77,45 @@ object DistroManager {
         }
     }
 
+    /** Guards against tar-slip: every extracted path must stay inside [dest]. */
+    private fun safeTarget(dest: File, entryName: String): File {
+        val out = File(dest, entryName)
+        val root = dest.canonicalPath + File.separator
+        if (!(out.canonicalPath + File.separator).startsWith(root) && out.canonicalPath != dest.canonicalPath)
+            throw IOException("Blocked unsafe path in rootfs: $entryName")
+        return out
+    }
+
     private fun extractRootfs(tarFile: File, outputDir: File) {
         outputDir.mkdirs()
-        val stream = tarFile.inputStream().buffered()
-        val gzip = GzipCompressorInputStream(stream)
-        val tar = TarArchiveInputStream(gzip)
-        var entry = tar.nextEntry
-        while (entry != null) {
-            val file = File(outputDir, entry.name)
-            if (entry.isDirectory) {
-                file.mkdirs()
-            } else {
-                file.parentFile?.mkdirs()
-                file.outputStream().use { tar.copyTo(it) }
+        TarArchiveInputStream(GzipCompressorInputStream(tarFile.inputStream().buffered(1 shl 16))).use { tar ->
+            var entry = tar.nextEntry
+            while (entry != null) {
+                val out = safeTarget(outputDir, entry.name)
+                when {
+                    entry.isDirectory -> out.mkdirs()
+                    entry.isSymbolicLink -> {
+                        out.parentFile?.mkdirs()
+                        runCatching { out.delete(); Os.symlink(entry.linkName, out.path) }
+                    }
+                    entry.isLink -> {
+                        out.parentFile?.mkdirs()
+                        val target = safeTarget(outputDir, entry.linkName)
+                        val linked = runCatching { Os.link(target.path, out.path) }.isSuccess
+                        if (!linked && target.isFile) target.copyTo(out, overwrite = true)
+                    }
+                    else -> {
+                        out.parentFile?.mkdirs()
+                        out.outputStream().use { tar.copyTo(it) }
+                        if ((entry.mode and 0b001001001) != 0) out.setExecutable(true, false)
+                    }
+                }
+                entry = tar.nextEntry
             }
-            entry = tar.nextEntry
         }
     }
 
     fun uninstall(ctx: Context, id: String) {
         base(ctx, id).deleteRecursively()
-    }
-
-    fun launchEnv(ctx: Context): List<String> {
-        return listOf(
-            "TERM=xterm-256color",
-            "LANG=C.UTF-8",
-            "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
-        )
-    }
-
-    fun launchArgv(ctx: Context, id: String): List<String> {
-        return listOf("sh", "-c", "cd / && exec /bin/sh")
     }
 }
