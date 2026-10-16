@@ -1,39 +1,268 @@
 {
   "distros": [
-    {"id": "alpine", "name": "Alpine Linux", "version": "3.24", "sizeMb": 5, "url": "https://dl-cdn.alpinelinux.org/alpine/v3.24/releases/aarch64/alpine-minirootfs-3.24.0-aarch64.tar.gz", "sha256url": "", "initCmds": ["apk update"]},
-    {"id": "debian12", "name": "Debian 12 (Bookworm)", "version": "12", "sizeMb": 65, "url": "https://github.com/debuerreotype/docker-debian-artifacts/raw/refs/heads/dist-arm64v8/bookworm/slim/oci/blobs/rootfs.tar.gz", "sha256url": "", "initCmds": ["apt-get update"]},
-    {"id": "debian11", "name": "Debian 11 (Bullseye)", "version": "11", "sizeMb": 60, "url": "https://github.com/debuerreotype/docker-debian-artifacts/raw/refs/heads/dist-arm64v8/bullseye/slim/oci/blobs/rootfs.tar.gz", "sha256url": "", "initCmds": ["apt-get update"]},
-    {"id": "ubuntu24", "name": "Ubuntu 24.04 LTS", "version": "24.04", "sizeMb": 85, "url": "https://cdimage.ubuntu.com/ubuntu-base/releases/24.04/release/ubuntu-base-24.04-base-arm64.tar.gz", "sha256url": "", "initCmds": ["apt-get update"]},
-    {"id": "ubuntu22", "name": "Ubuntu 22.04 LTS", "version": "22.04", "sizeMb": 80, "url": "https://cdimage.ubuntu.com/ubuntu-base/releases/22.04/release/ubuntu-base-22.04.5-base-arm64.tar.gz", "sha256url": "", "initCmds": ["apt-get update"]},
-    {"id": "ubuntu20", "name": "Ubuntu 20.04 LTS", "version": "20.04", "sizeMb": 75, "url": "https://cdimage.ubuntu.com/ubuntu-base/releases/20.04/release/ubuntu-base-20.04.6-base-arm64.tar.gz", "sha256url": "", "initCmds": ["apt-get update"]},
-    {"id": "fedora41", "name": "Fedora 41", "version": "41", "sizeMb": 200, "url": "https://dl.fedoraproject.org/pub/fedora-secondary/releases/41/Container/aarch64/images/Fedora-Container-Base-41-1.6.aarch64.tar.xz", "sha256url": "", "initCmds": ["dnf update -y"]},
-    {"id": "fedora40", "name": "Fedora 40", "version": "40", "sizeMb": 190, "url": "https://dl.fedoraproject.org/pub/fedora-secondary/releases/40/Container/aarch64/images/Fedora-Container-40-20240427.aarch64.tar.xz", "sha256url": "", "initCmds": ["dnf update -y"]},
-    {"id": "opensuse", "name": "OpenSUSE Leap", "version": "15.6", "sizeMb": 120, "url": "https://github.com/openSUSE/docker-image/raw/master/aarch64/Dockerfile", "sha256url": "", "initCmds": ["zypper refresh"]},
-    {"id": "archlinux", "name": "Arch Linux ARM", "version": "rolling", "sizeMb": 150, "url": "https://os.archlinuxarm.org/os/ArchLinuxARM-aarch64-latest.tar.gz", "sha256url": "", "initCmds": ["pacman -Sy"]},
-    {"id": "centos9", "name": "CentOS Stream 9", "version": "9", "sizeMb": 160, "url": "https://github.com/CentOS/sig-cloud-instance-images/raw/main/docker/aarch64/Dockerfile", "sha256url": "", "initCmds": ["dnf update -y"]},
-    {"id": "rockylinux9", "name": "Rocky Linux 9", "version": "9", "sizeMb": 180, "url": "https://dl.rockylinux.org/pub/rocky/9/container/aarch64/rocky-container-9-oci.tar.xz", "sha256url": "", "initCmds": ["dnf update -y"]},
-    {"id": "almalinux9", "name": "AlmaLinux 9", "version": "9", "sizeMb": 170, "url": "https://repo.almalinux.org/almalinux/9/container/aarch64/images/AlmaLinux-9-container-latest.aarch64.tar.xz", "sha256url": "", "initCmds": ["dnf update -y"]},
-    {"id": "kali", "name": "Kali Linux", "version": "rolling", "sizeMb": 250, "url": "https://mirrors.aliyun.com/kali/pool/main/k/kali-linux-docker/kali-linux-docker_2024.1_arm64.docker.tar.xz", "sha256url": "", "initCmds": ["apt-get update"]},
-    {"id": "parrot", "name": "Parrot Security OS", "version": "6.0", "sizeMb": 220, "url": "https://deb.parrotsec.org/docker/parrot-security-6.0-aarch64.tar.xz", "sha256url": "", "initCmds": ["apt-get update"]},
-    {"id": "pentoo", "name": "Pentoo Linux", "version": "rolling", "sizeMb": 300, "url": "https://github.com/pentoo/pentoo-docker/raw/main/Dockerfile", "sha256url": "", "initCmds": ["emerge --sync"]},
-    {"id": "void", "name": "Void Linux", "version": "rolling", "sizeMb": 80, "url": "https://alpha.de.repo.voidlinux.org/live/current/void-arm64-ROOTFS-20240603.tar.xz", "sha256url": "", "initCmds": ["xbps-install -Su"]},
-    {"id": "nixos", "name": "NixOS", "version": "23.11", "sizeMb": 200, "url": "https://github.com/nix-community/docker-nixpkgs/raw/master/Dockerfile.aarch64", "sha256url": "", "initCmds": ["nix flake update"]},
-    {"id": "gentoo", "name": "Gentoo Linux", "version": "rolling", "sizeMb": 120, "url": "https://github.com/gentoo/gentoo-docker-images/raw/main/aarch64/stage3-latest.tar.xz", "sha256url": "", "initCmds": ["emerge --sync"]},
-    {"id": "slackware", "name": "Slackware ARM", "version": "15.0", "sizeMb": 150, "url": "https://slackware.org.uk/slackwarearm/slackwarearm-current/slackware-arm-rootfs-latest.tar.xz", "sha256url": "", "initCmds": ["slackpkg update"]},
-    {"id": "openvz", "name": "OpenVZ", "version": "7.0", "sizeMb": 50, "url": "https://download.openvz.org/template/precreated/aarch64/centos-7-aarch64.tar.gz", "sha256url": "", "initCmds": ["yum update"]},
-    {"id": "devuan", "name": "Devuan (systemd-free)", "version": "5.0", "sizeMb": 70, "url": "https://github.com/devuan/docker-images/raw/master/Dockerfile", "sha256url": "", "initCmds": ["apt-get update"]},
-    {"id": "antiX", "name": "antiX Linux", "version": "23", "sizeMb": 90, "url": "https://github.com/MX-Linux/MX-Linux-docker/raw/main/Dockerfile", "sha256url": "", "initCmds": ["apt-get update"]},
-    {"id": "mx", "name": "MX Linux", "version": "23", "sizeMb": 100, "url": "https://github.com/MX-Linux/MX-Linux-docker/raw/main/Dockerfile", "sha256url": "", "initCmds": ["apt-get update"]},
-    {"id": "elementary", "name": "Elementary OS", "version": "7.1", "sizeMb": 110, "url": "https://github.com/elementary/docker/raw/main/Dockerfile", "sha256url": "", "initCmds": ["apt-get update"]},
-    {"id": "popos", "name": "Pop!_OS", "version": "22.04", "sizeMb": 95, "url": "https://github.com/pop-os/docker/raw/master/Dockerfile", "sha256url": "", "initCmds": ["apt-get update"]},
-    {"id": "solus", "name": "Solus", "version": "rolling", "sizeMb": 140, "url": "https://github.com/solus-project/docker/raw/main/Dockerfile", "sha256url": "", "initCmds": ["eopkg update"]},
-    {"id": "mandriva", "name": "Mandriva/Mageia", "version": "9", "sizeMb": 110, "url": "https://github.com/mageia/docker/raw/master/Dockerfile", "sha256url": "", "initCmds": ["urpmi --auto-update"]},
-    {"id": "opensuseTumbleweed", "name": "OpenSUSE Tumbleweed", "version": "rolling", "sizeMb": 130, "url": "https://github.com/openSUSE/docker-image/raw/master/Dockerfile.tumbleweed", "sha256url": "", "initCmds": ["zypper refresh"]},
-    {"id": "artix", "name": "Artix Linux", "version": "rolling", "sizeMb": 140, "url": "https://github.com/artix-linux/artix-docker/raw/main/Dockerfile", "sha256url": "", "initCmds": ["pacman -Sy"]},
-    {"id": "lubuntu", "name": "Lubuntu", "version": "24.04", "sizeMb": 85, "url": "https://cdimage.ubuntu.com/lubuntu/releases/24.04/release/lubuntu-24.04-base-arm64.tar.gz", "sha256url": "", "initCmds": ["apt-get update"]},
-    {"id": "xubuntu", "name": "Xubuntu", "version": "24.04", "sizeMb": 90, "url": "https://cdimage.ubuntu.com/xubuntu/releases/24.04/release/xubuntu-24.04-base-arm64.tar.gz", "sha256url": "", "initCmds": ["apt-get update"]},
-    {"id": "kubuntu", "name": "Kubuntu", "version": "24.04", "sizeMb": 110, "url": "https://cdimage.ubuntu.com/kubuntu/releases/24.04/release/kubuntu-24.04-base-arm64.tar.gz", "sha256url": "", "initCmds": ["apt-get update"]},
-    {"id": "linuxmint", "name": "Linux Mint", "version": "21.3", "sizeMb": 95, "url": "https://github.com/linuxmint/docker/raw/master/Dockerfile", "sha256url": "", "initCmds": ["apt-get update"]},
-    {"id": "zorin", "name": "Zorin OS", "version": "17.1", "sizeMb": 100, "url": "https://github.com/zorinos/docker/raw/main/Dockerfile", "sha256url": "", "initCmds": ["apt-get update"]}
+    {
+      "id": "alpine",
+      "name": "Alpine Linux",
+      "version": "3.24",
+      "sizeMb": 5,
+      "url": "https://dl-cdn.alpinelinux.org/alpine/v3.24/releases/aarch64/alpine-minirootfs-3.24.0-aarch64.tar.gz",
+      "sha256url": "",
+      "initCmds": [
+        "apk update"
+      ]
+    },
+    {
+      "id": "debian12",
+      "name": "Debian 12 (Bookworm)",
+      "version": "12",
+      "sizeMb": 65,
+      "url": "https://github.com/debuerreotype/docker-debian-artifacts/raw/refs/heads/dist-arm64v8/bookworm/slim/oci/blobs/rootfs.tar.gz",
+      "sha256url": "",
+      "initCmds": [
+        "apt-get update"
+      ]
+    },
+    {
+      "id": "debian11",
+      "name": "Debian 11 (Bullseye)",
+      "version": "11",
+      "sizeMb": 60,
+      "url": "https://github.com/debuerreotype/docker-debian-artifacts/raw/refs/heads/dist-arm64v8/bullseye/slim/oci/blobs/rootfs.tar.gz",
+      "sha256url": "",
+      "initCmds": [
+        "apt-get update"
+      ]
+    },
+    {
+      "id": "ubuntu24",
+      "name": "Ubuntu 24.04 LTS",
+      "version": "24.04",
+      "sizeMb": 85,
+      "url": "https://cdimage.ubuntu.com/ubuntu-base/releases/24.04/release/ubuntu-base-24.04-base-arm64.tar.gz",
+      "sha256url": "",
+      "initCmds": [
+        "apt-get update"
+      ]
+    },
+    {
+      "id": "ubuntu22",
+      "name": "Ubuntu 22.04 LTS",
+      "version": "22.04",
+      "sizeMb": 80,
+      "url": "https://cdimage.ubuntu.com/ubuntu-base/releases/22.04/release/ubuntu-base-22.04.5-base-arm64.tar.gz",
+      "sha256url": "",
+      "initCmds": [
+        "apt-get update"
+      ]
+    },
+    {
+      "id": "ubuntu20",
+      "name": "Ubuntu 20.04 LTS",
+      "version": "20.04",
+      "sizeMb": 75,
+      "url": "https://cdimage.ubuntu.com/ubuntu-base/releases/20.04/release/ubuntu-base-20.04.6-base-arm64.tar.gz",
+      "sha256url": "",
+      "initCmds": [
+        "apt-get update"
+      ]
+    },
+    {
+      "id": "fedora41",
+      "name": "Fedora 41",
+      "version": "41",
+      "sizeMb": 200,
+      "url": "https://dl.fedoraproject.org/pub/fedora-secondary/releases/41/Container/aarch64/images/Fedora-Container-Base-41-1.6.aarch64.tar.xz",
+      "sha256url": "",
+      "initCmds": [
+        "dnf update -y"
+      ]
+    },
+    {
+      "id": "fedora40",
+      "name": "Fedora 40",
+      "version": "40",
+      "sizeMb": 190,
+      "url": "https://dl.fedoraproject.org/pub/fedora-secondary/releases/40/Container/aarch64/images/Fedora-Container-40-20240427.aarch64.tar.xz",
+      "sha256url": "",
+      "initCmds": [
+        "dnf update -y"
+      ]
+    },
+    {
+      "id": "opensuse",
+      "name": "OpenSUSE Leap",
+      "version": "15.6",
+      "sizeMb": 120,
+      "url": "https://jenkins.linuxcontainers.org/job/image-opensuse/architecture=arm64,release=15.6,variant=default/lastStableBuild/artifact/rootfs.tar.xz",
+      "sha256url": "",
+      "initCmds": [
+        "zypper refresh"
+      ]
+    },
+    {
+      "id": "archlinux",
+      "name": "Arch Linux ARM",
+      "version": "rolling",
+      "sizeMb": 150,
+      "url": "https://os.archlinuxarm.org/os/ArchLinuxARM-aarch64-latest.tar.gz",
+      "sha256url": "",
+      "initCmds": [
+        "pacman -Sy"
+      ]
+    },
+    {
+      "id": "centos9",
+      "name": "CentOS Stream 9",
+      "version": "9",
+      "sizeMb": 160,
+      "url": "https://jenkins.linuxcontainers.org/job/image-centos/architecture=arm64,release=9-Stream,variant=default/lastStableBuild/artifact/rootfs.tar.xz",
+      "sha256url": "",
+      "initCmds": [
+        "dnf update -y"
+      ]
+    },
+    {
+      "id": "rockylinux9",
+      "name": "Rocky Linux 9",
+      "version": "9",
+      "sizeMb": 180,
+      "url": "https://dl.rockylinux.org/pub/rocky/9/container/aarch64/rocky-container-9-oci.tar.xz",
+      "sha256url": "",
+      "initCmds": [
+        "dnf update -y"
+      ]
+    },
+    {
+      "id": "almalinux9",
+      "name": "AlmaLinux 9",
+      "version": "9",
+      "sizeMb": 170,
+      "url": "https://repo.almalinux.org/almalinux/9/container/aarch64/images/AlmaLinux-9-container-latest.aarch64.tar.xz",
+      "sha256url": "",
+      "initCmds": [
+        "dnf update -y"
+      ]
+    },
+    {
+      "id": "kali",
+      "name": "Kali Linux",
+      "version": "rolling",
+      "sizeMb": 250,
+      "url": "https://mirrors.aliyun.com/kali/pool/main/k/kali-linux-docker/kali-linux-docker_2024.1_arm64.docker.tar.xz",
+      "sha256url": "",
+      "initCmds": [
+        "apt-get update"
+      ]
+    },
+    {
+      "id": "parrot",
+      "name": "Parrot Security OS",
+      "version": "6.0",
+      "sizeMb": 220,
+      "url": "https://deb.parrotsec.org/docker/parrot-security-6.0-aarch64.tar.xz",
+      "sha256url": "",
+      "initCmds": [
+        "apt-get update"
+      ]
+    },
+    {
+      "id": "void",
+      "name": "Void Linux",
+      "version": "rolling",
+      "sizeMb": 80,
+      "url": "https://alpha.de.repo.voidlinux.org/live/current/void-arm64-ROOTFS-20240603.tar.xz",
+      "sha256url": "",
+      "initCmds": [
+        "xbps-install -Su"
+      ]
+    },
+    {
+      "id": "gentoo",
+      "name": "Gentoo Linux",
+      "version": "rolling",
+      "sizeMb": 120,
+      "url": "https://github.com/gentoo/gentoo-docker-images/raw/main/aarch64/stage3-latest.tar.xz",
+      "sha256url": "",
+      "initCmds": [
+        "emerge --sync"
+      ]
+    },
+    {
+      "id": "slackware",
+      "name": "Slackware ARM",
+      "version": "15.0",
+      "sizeMb": 150,
+      "url": "https://slackware.org.uk/slackwarearm/slackwarearm-current/slackware-arm-rootfs-latest.tar.xz",
+      "sha256url": "",
+      "initCmds": [
+        "slackpkg update"
+      ]
+    },
+    {
+      "id": "openvz",
+      "name": "OpenVZ",
+      "version": "7.0",
+      "sizeMb": 50,
+      "url": "https://download.openvz.org/template/precreated/aarch64/centos-7-aarch64.tar.gz",
+      "sha256url": "",
+      "initCmds": [
+        "yum update"
+      ]
+    },
+    {
+      "id": "devuan",
+      "name": "Devuan (systemd-free)",
+      "version": "5.0",
+      "sizeMb": 70,
+      "url": "https://jenkins.linuxcontainers.org/job/image-devuan/architecture=arm64,release=daedalus,variant=default/lastStableBuild/artifact/rootfs.tar.xz",
+      "sha256url": "",
+      "initCmds": [
+        "apt-get update"
+      ]
+    },
+    {
+      "id": "opensuseTumbleweed",
+      "name": "OpenSUSE Tumbleweed",
+      "version": "rolling",
+      "sizeMb": 130,
+      "url": "https://jenkins.linuxcontainers.org/job/image-opensuse/architecture=arm64,release=tumbleweed,variant=default/lastStableBuild/artifact/rootfs.tar.xz",
+      "sha256url": "",
+      "initCmds": [
+        "zypper refresh"
+      ]
+    },
+    {
+      "id": "lubuntu",
+      "name": "Lubuntu",
+      "version": "24.04",
+      "sizeMb": 85,
+      "url": "https://cdimage.ubuntu.com/lubuntu/releases/24.04/release/lubuntu-24.04-base-arm64.tar.gz",
+      "sha256url": "",
+      "initCmds": [
+        "apt-get update"
+      ]
+    },
+    {
+      "id": "xubuntu",
+      "name": "Xubuntu",
+      "version": "24.04",
+      "sizeMb": 90,
+      "url": "https://cdimage.ubuntu.com/xubuntu/releases/24.04/release/xubuntu-24.04-base-arm64.tar.gz",
+      "sha256url": "",
+      "initCmds": [
+        "apt-get update"
+      ]
+    },
+    {
+      "id": "kubuntu",
+      "name": "Kubuntu",
+      "version": "24.04",
+      "sizeMb": 110,
+      "url": "https://cdimage.ubuntu.com/kubuntu/releases/24.04/release/kubuntu-24.04-base-arm64.tar.gz",
+      "sha256url": "",
+      "initCmds": [
+        "apt-get update"
+      ]
+    }
   ]
 }
